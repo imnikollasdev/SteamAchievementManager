@@ -36,6 +36,8 @@ namespace SAM.Game
 {
     internal partial class Manager : Form
     {
+        private static System.Windows.Forms.Timer unlockTimer;
+
         private readonly long _GameId;
         private readonly API.Client _SteamClient;
 
@@ -50,14 +52,16 @@ namespace SAM.Game
 
         private readonly API.Callbacks.UserStatsReceived _UserStatsReceivedCallback;
 
-        //private API.Callback<APITypes.UserStatsStored> UserStatsStoredCallback;
+        private bool isAutomationEnabled = false;
 
         public Manager(long gameId, API.Client client)
         {
             this.InitializeComponent();
 
+            unlockTimer = new System.Windows.Forms.Timer();
+            unlockTimer.Tick += unlockAchievementsAutomatically;
+
             this._MainTabControl.SelectedTab = this._AchievementsTabPage;
-            //this.statisticsList.Enabled = this.checkBox1.Checked;
 
             this._AchievementImageList.Images.Add("Blank", new Bitmap(64, 64));
 
@@ -104,6 +108,13 @@ namespace SAM.Game
             //this.UserStatsStoredCallback = new API.Callback(1102, new API.Callback.CallbackFunction(this.OnUserStatsStored));
 
             this.RefreshStats();
+        }
+
+        private void SetRandomInterval()
+        {
+            Random rand = new Random();
+            int randomInterval = rand.Next(600000, 1800000);
+            unlockTimer.Interval = randomInterval;
         }
 
         private void AddAchievementIcon(Stats.AchievementInfo info, Image icon)
@@ -216,7 +227,7 @@ namespace SAM.Game
                     return false;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
@@ -252,91 +263,91 @@ namespace SAM.Game
                 switch (type)
                 {
                     case APITypes.UserStatType.Invalid:
-                    {
-                        break;
-                    }
+                        {
+                            break;
+                        }
 
                     case APITypes.UserStatType.Integer:
-                    {
-                        var id = stat["name"].AsString("");
-                        string name = GetLocalizedString(stat["display"]["name"], currentLanguage, id);
-
-                        this._StatDefinitions.Add(new Stats.IntegerStatDefinition()
                         {
-                            Id = stat["name"].AsString(""),
-                            DisplayName = name,
-                            MinValue = stat["min"].AsInteger(int.MinValue),
-                            MaxValue = stat["max"].AsInteger(int.MaxValue),
-                            MaxChange = stat["maxchange"].AsInteger(0),
-                            IncrementOnly = stat["incrementonly"].AsBoolean(false),
-                            SetByTrustedGameServer = stat["bSetByTrustedGS"].AsBoolean(false),
-                            DefaultValue = stat["default"].AsInteger(0),
-                            Permission = stat["permission"].AsInteger(0),
-                        });
-                        break;
-                    }
+                            var id = stat["name"].AsString("");
+                            string name = GetLocalizedString(stat["display"]["name"], currentLanguage, id);
+
+                            this._StatDefinitions.Add(new Stats.IntegerStatDefinition()
+                            {
+                                Id = stat["name"].AsString(""),
+                                DisplayName = name,
+                                MinValue = stat["min"].AsInteger(int.MinValue),
+                                MaxValue = stat["max"].AsInteger(int.MaxValue),
+                                MaxChange = stat["maxchange"].AsInteger(0),
+                                IncrementOnly = stat["incrementonly"].AsBoolean(false),
+                                SetByTrustedGameServer = stat["bSetByTrustedGS"].AsBoolean(false),
+                                DefaultValue = stat["default"].AsInteger(0),
+                                Permission = stat["permission"].AsInteger(0),
+                            });
+                            break;
+                        }
 
                     case APITypes.UserStatType.Float:
                     case APITypes.UserStatType.AverageRate:
-                    {
-                        var id = stat["name"].AsString("");
-                        string name = GetLocalizedString(stat["display"]["name"], currentLanguage, id);
-
-                        this._StatDefinitions.Add(new Stats.FloatStatDefinition()
                         {
-                            Id = stat["name"].AsString(""),
-                            DisplayName = name,
-                            MinValue = stat["min"].AsFloat(float.MinValue),
-                            MaxValue = stat["max"].AsFloat(float.MaxValue),
-                            MaxChange = stat["maxchange"].AsFloat(0.0f),
-                            IncrementOnly = stat["incrementonly"].AsBoolean(false),
-                            DefaultValue = stat["default"].AsFloat(0.0f),
-                            Permission = stat["permission"].AsInteger(0),
-                        });
-                        break;
-                    }
+                            var id = stat["name"].AsString("");
+                            string name = GetLocalizedString(stat["display"]["name"], currentLanguage, id);
+
+                            this._StatDefinitions.Add(new Stats.FloatStatDefinition()
+                            {
+                                Id = stat["name"].AsString(""),
+                                DisplayName = name,
+                                MinValue = stat["min"].AsFloat(float.MinValue),
+                                MaxValue = stat["max"].AsFloat(float.MaxValue),
+                                MaxChange = stat["maxchange"].AsFloat(0.0f),
+                                IncrementOnly = stat["incrementonly"].AsBoolean(false),
+                                DefaultValue = stat["default"].AsFloat(0.0f),
+                                Permission = stat["permission"].AsInteger(0),
+                            });
+                            break;
+                        }
 
                     case APITypes.UserStatType.Achievements:
                     case APITypes.UserStatType.GroupAchievements:
-                    {
-                        if (stat.Children != null)
                         {
-                            foreach (var bits in stat.Children.Where(
-                                b => string.Compare(b.Name, "bits", StringComparison.InvariantCultureIgnoreCase) == 0))
+                            if (stat.Children != null)
                             {
-                                if (bits.Valid == false ||
-                                    bits.Children == null)
+                                foreach (var bits in stat.Children.Where(
+                                    b => string.Compare(b.Name, "bits", StringComparison.InvariantCultureIgnoreCase) == 0))
                                 {
-                                    continue;
-                                }
-
-                                foreach (var bit in bits.Children)
-                                {
-                                    string id = bit["name"].AsString("");
-                                    string name = GetLocalizedString(bit["display"]["name"], currentLanguage, id);
-                                    string desc = GetLocalizedString(bit["display"]["desc"], currentLanguage, "");
-
-                                    this._AchievementDefinitions.Add(new()
+                                    if (bits.Valid == false ||
+                                        bits.Children == null)
                                     {
-                                        Id = id,
-                                        Name = name,
-                                        Description = desc,
-                                        IconNormal = bit["display"]["icon"].AsString(""),
-                                        IconLocked = bit["display"]["icon_gray"].AsString(""),
-                                        IsHidden = bit["display"]["hidden"].AsBoolean(false),
-                                        Permission = bit["permission"].AsInteger(0),
-                                    });
+                                        continue;
+                                    }
+
+                                    foreach (var bit in bits.Children)
+                                    {
+                                        string id = bit["name"].AsString("");
+                                        string name = GetLocalizedString(bit["display"]["name"], currentLanguage, id);
+                                        string desc = GetLocalizedString(bit["display"]["desc"], currentLanguage, "");
+
+                                        this._AchievementDefinitions.Add(new()
+                                        {
+                                            Id = id,
+                                            Name = name,
+                                            Description = desc,
+                                            IconNormal = bit["display"]["icon"].AsString(""),
+                                            IconLocked = bit["display"]["icon_gray"].AsString(""),
+                                            IsHidden = bit["display"]["hidden"].AsBoolean(false),
+                                            Permission = bit["permission"].AsInteger(0),
+                                        });
+                                    }
                                 }
                             }
+
+                            break;
                         }
 
-                        break;
-                    }
-
                     default:
-                    {
-                        throw new InvalidOperationException("invalid stat type");
-                    }
+                        {
+                            throw new InvalidOperationException("invalid stat type");
+                        }
                 }
             }
 
@@ -459,7 +470,7 @@ namespace SAM.Game
 
                 if (textSearch != null)
                 {
-                    if (def.Name.IndexOf(textSearch, StringComparison.OrdinalIgnoreCase) < 0 &&
+                    if (def.Name.IndexOf(textSearch, StringComparison.OrdinalIgnoreCase) < 0 ||
                         def.Description.IndexOf(textSearch, StringComparison.OrdinalIgnoreCase) < 0)
                     {
                         continue;
@@ -516,6 +527,37 @@ namespace SAM.Game
             this.DownloadNextIcon();
         }
 
+        private void unlockAchievementsAutomatically(object sender, EventArgs e)
+        {
+            if (this._AchievementListView.Items.Count == 0)
+            {
+                return;
+            }
+
+            Random rand = new Random();
+
+            int index = rand.Next(0, this._AchievementListView.Items.Count);
+            var selectedItem = this._AchievementListView.Items[index];
+
+            if (selectedItem.Tag is Stats.AchievementInfo info && !info.IsAchieved)  // Corrigido para 'IsAchieved'
+            {
+                info.IsAchieved = true;  // Alterado para 'IsAchieved'
+                selectedItem.Checked = true;
+
+                if (this._SteamClient.SteamUserStats.SetAchievement(info.Id, true))
+                {
+                    this._SteamClient.SteamUserStats.StoreStats();
+                }
+                else
+                {
+                    return;
+                }
+
+                this.StoreAchievements();
+            }
+
+            SetRandomInterval();
+        }
         private void GetStatistics()
         {
             this._Statistics.Clear();
@@ -725,6 +767,42 @@ namespace SAM.Game
             }
         }
 
+        private void onAutomatizatedAchievements(object sender, EventArgs e)
+        {
+            // Alterna o estado da automação
+            isAutomationEnabled = !isAutomationEnabled;
+
+            // Verifique se o código está no UI thread
+            if (this.InvokeRequired)
+            {
+                // Se não estiver no UI thread, use Invoke
+                this.Invoke(new Action(() =>
+                {
+                    // Alterando o texto do botão
+                    UpdateButtonText();
+                }));
+            }
+            else
+            {
+                // Se já estiver no UI thread, atualize o texto diretamente
+                UpdateButtonText();
+            }
+        }
+
+        private void UpdateButtonText()
+        {
+            if (isAutomationEnabled)
+            {
+                _AutomatedButton.Text = "Disable Automatization";
+                unlockTimer.Start(); // Inicia o temporizador
+                SetRandomInterval(); // Atualiza o intervalo aleatório
+            }
+            else
+            {
+                _AutomatedButton.Text = "Enable Automatization";
+                unlockTimer.Stop(); // Para o temporizador
+            }
+        }
         private bool Store()
         {
             if (this._SteamClient.SteamUserStats.StoreStats() == false)

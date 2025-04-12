@@ -50,7 +50,7 @@
             this._AchievementUnlockTimeColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this._AchievementsToolStrip = new System.Windows.Forms.ToolStrip();
             this._LockAllButton = new System.Windows.Forms.ToolStripButton();
-            this._InvertAllButton = new System.Windows.Forms.ToolStripButton();
+            this._AutomatedButton = new System.Windows.Forms.ToolStripButton();
             this._UnlockAllButton = new System.Windows.Forms.ToolStripButton();
             this._DisplayLabel = new System.Windows.Forms.ToolStripLabel();
             this._DisplayLockedOnlyButton = new System.Windows.Forms.ToolStripButton();
@@ -103,6 +103,7 @@
             this._StoreButton.Text = "Commit Changes";
             this._StoreButton.ToolTipText = "Store achievements and statistics for active game.";
             this._StoreButton.Click += new System.EventHandler(this.OnStore);
+    
             // 
             // _ReloadButton
             // 
@@ -237,7 +238,7 @@
             // 
             this._AchievementsToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this._LockAllButton,
-            this._InvertAllButton,
+            this._AutomatedButton,
             this._UnlockAllButton,
             _ToolStripSeparator1,
             this._DisplayLabel,
@@ -262,16 +263,16 @@
             this._LockAllButton.ToolTipText = "Lock all achievements.";
             this._LockAllButton.Click += new System.EventHandler(this.OnLockAll);
             // 
-            // _InvertAllButton
+            // _AutomatedButton
             // 
-            this._InvertAllButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this._InvertAllButton.Image = global::SAM.Game.Resources.Invert;
-            this._InvertAllButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this._InvertAllButton.Name = "_InvertAllButton";
-            this._InvertAllButton.Size = new System.Drawing.Size(23, 22);
-            this._InvertAllButton.Text = "Invert All";
-            this._InvertAllButton.ToolTipText = "Invert all achievements.";
-            this._InvertAllButton.Click += new System.EventHandler(this.OnInvertAll);
+            this._AutomatedButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this._AutomatedButton.Image = global::SAM.Game.Resources.Refresh;
+            this._AutomatedButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this._AutomatedButton.Name = "_AutomatedButton";
+            this._AutomatedButton.Size = new System.Drawing.Size(23, 22);
+            this._AutomatedButton.Text = "Enable Automatization";
+            this._AutomatedButton.ToolTipText = "Enable Automatization achievements.";
+            this._AutomatedButton.Click += new System.EventHandler(this.onAutomatizatedAchievements);
             // 
             // _UnlockAllButton
             // 
@@ -378,7 +379,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(640, 50);
             this.Name = "Manager";
-            this.Text = "Steam Achievement Manager 7.0";
+            this.Text = "Steam Achievement Manager 7.0 modified by @imNikollasDev";
             this._MainToolStrip.ResumeLayout(false);
             this._MainToolStrip.PerformLayout();
             this._MainStatusStrip.ResumeLayout(false);
@@ -414,7 +415,7 @@
         private System.Windows.Forms.ColumnHeader _AchievementDescriptionColumnHeader;
         private System.Windows.Forms.ToolStrip _AchievementsToolStrip;
         private System.Windows.Forms.ToolStripButton _LockAllButton;
-        private System.Windows.Forms.ToolStripButton _InvertAllButton;
+        private System.Windows.Forms.ToolStripButton _AutomatedButton;
         private System.Windows.Forms.ToolStripButton _UnlockAllButton;
         private System.Windows.Forms.DataGridView _StatisticsDataGridView;
         private System.Windows.Forms.ToolStripButton _ResetButton;
